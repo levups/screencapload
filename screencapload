@@ -52,3 +52,6 @@ url  = json['upload']['links']['original']
 # Copy original image url to pasteboard and output url to stdout
 `echo -n '#{url}' | pbcopy`
 puts "#{url}"
+
+# Play an upload complete sound
+`osascript -e 'Say "Boom"'`
