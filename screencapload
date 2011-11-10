@@ -54,4 +54,5 @@ url  = json['upload']['links']['original']
 puts "#{url}"
 
 # Play an upload complete sound
-`osascript -e 'Say "Boom"'`
+# YJE (10/11/2011) : let's add some emotion !
+`osascript -e 'Say "Boom!"'`
