@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+# encoding: UTF-8
+
+API_URL = 'http://api.imgur.com/2/upload.json'
+SCREENCAPTURE = '/usr/sbin/screencapture'
+# Use a unique, timestamp based filename
+TEMP_FILE = "/tmp/screenshot-#{Time.now.to_f}.png"
+
+# JSON is required to parse imgur's response
+begin
+  require 'rubygems'
+  require 'json'
+rescue GEM::LoadError
+  puts "You must install json gem for this script to work."
+  exit
+end
+
+# API key should be given via command line
+# TODO : read API key from .imgur_rc file
+if ARGV[0]
+  API_KEY = ARGV[0]
+else
+  puts "Usage: screencapload IMGUR_API_KEY"
+  exit
+end
+
+# Take a screenshot.
+# -x = don't play sound
+# -i = capture interactively (via mouse or window capture)
+`#{SCREENCAPTURE} -x -i '#{TEMP_FILE}'`
+
+# Check that the screenshot was actually captured, exit if not
+unless File.exists?(TEMP_FILE)
+  puts "Impossible to get captured screen image file."
+  exit
+end
+
+# Upload it to imgur.com
+# CURL uses -F/--form to specify HTTP multipart POST data
+# CURL uses -X/--request to request command to use
+command  = "curl --silent -X POST -F 'image=@#{TEMP_FILE}' -F 'key=#{API_KEY}' '#{API_URL}'"
+response = `#{command}`
+
+# Fileutils is used to delete temporary image.
+require 'fileutils'
+FileUtils.rm(TEMP_FILE)
+
+# Parse response and get original image url from JSON
+json = JSON.parse(response)
+url  = json['upload']['links']['original']
+
+# Copy original image url to pasteboard and output url to stdout
+`echo -n '#{url}' | pbcopy`
+puts "#{url}"
