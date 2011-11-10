@@ -14,3 +14,10 @@ You need an API key from imgur. This is required to use the
 
 You can get [register your application](http://imgur.com/register/api_anon)
 and get your own API key. It allows you to upload up to 100 images per hour.
+
+## OSX Integration
+
+You can use this script via a keyboard shortcut in many ways :
+
+- Create a system-wide service with Automator, than launches screencapload
+- Create a keyboard shortcut in Alfred App that triggers an Alfred Action
