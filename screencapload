@@ -1,24 +1,33 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
+# Imgur JSON v2 API
 API_URL = 'http://api.imgur.com/2/upload.json'
+
+# Default OSX screencapture app path
 SCREENCAPTURE = '/usr/sbin/screencapture'
+
 # Use a unique, timestamp based filename
 TEMP_FILE = "/tmp/screenshot-#{Time.now.to_f}.png"
+
+# Dot file where this app's config is stored
+CONFIG_FILE = "/Users/#{ENV['USER']}/.screencapload.yml"
 
 # JSON is required to parse imgur's response
 begin
   require 'rubygems'
   require 'json'
+  require 'yaml'
 rescue GEM::LoadError
-  puts "You must install json gem for this script to work."
+  puts "You must install JSON and YAML gem for this script to work."
   exit
 end
 
-# API key should be given via command line
-# TODO : read API key from .imgur_rc file
+# API key can be given via command line or stored in ~/.screencapload.yml
 if ARGV[0]
   API_KEY = ARGV[0]
+elsif File.exists?(CONFIG_FILE)
+  API_KEY = YAML.load(File.open(CONFIG_FILE))['imgur_api_key']
 else
   puts "Usage: screencapload IMGUR_API_KEY"
   exit
