@@ -12,7 +12,7 @@ clipboard.
 You need an API key from imgur. This is required to use the
 [imgur API](http://api.imgur.com/resources_auth).
 
-You can get [register your application](http://imgur.com/register/api_anon)
+You can [register your application](http://imgur.com/register/api_anon)
 and get your own API key. It allows you to upload up to 100 images per hour.
 
 
@@ -22,7 +22,7 @@ For easier use, you can store your key in a config file named ~/.imgur
 The script will use command line attribute first and fallback to the config
 file otherwise.
 
-Config file syntax is pretty simple :
+Config file syntax is pretty simple, just paste your API key and your done ! Example :
 
     7d8ca1d32ca3daca123
 
