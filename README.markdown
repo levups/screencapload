@@ -30,5 +30,5 @@ Config file syntax is pretty simple :
 
 You can use this script via a keyboard shortcut in many ways :
 
-- Create a system-wide service with Automator, than launches screencapload
-- Create a keyboard shortcut in Alfred App that triggers an Alfred Action
+- Create a system-wide service with Automator, that launches screencapload
+- Create a keyboard shortcut in Alfred App that triggers an Alfred Action that launches screencapload
