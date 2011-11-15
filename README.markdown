@@ -3,7 +3,7 @@
 This command line utility launches Mac OSX screen capture in interactive
 mode (select a region or press space to toggle window capture), captures
 the image as an temporary PNG file, uploads it to imgur service and copies
-the original image URL to your pasteboard.
+the original image URL to your clipboard.
 
 The temporary image is deleted after successfull upload.
 
@@ -17,14 +17,14 @@ and get your own API key. It allows you to upload up to 100 images per hour.
 
 ## Config file
 
-For easier use, you can store your key in a config file named ".screencapload.yml"
-located in your home directory. The script will search for the file /Users/your_user_name/.screencapload.yml and fallback to command line attribute
-otherwise.
+For easier use, you can store your key in a config file named ~/.imgur
+The script will use command line attribute first and fallback to the config
+file otherwise.
 
-Syntax is pretty simple :
+Config file syntax is pretty simple :
 
-```yaml
-imgur_api_key: "12345..."
+```
+7d8ca1d32ca3daca123
 ```
 
 ## OSX Integration
