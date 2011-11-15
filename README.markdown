@@ -2,10 +2,10 @@
 
 This command line utility launches Mac OSX screen capture in interactive
 mode (select a region or press space to toggle window capture), captures
-the image as an temporary PNG file, uploads it to imgur service and copies
-the original image URL to your clipboard.
+a portion of your screen, trims and re-compresses the captured image,
+uploads it to imgur service and copies the full size image URL to your
+clipboard.
 
-The temporary image is deleted after successfull upload.
 
 ## API key
 
@@ -15,6 +15,7 @@ You need an API key from imgur. This is required to use the
 You can get [register your application](http://imgur.com/register/api_anon)
 and get your own API key. It allows you to upload up to 100 images per hour.
 
+
 ## Config file
 
 For easier use, you can store your key in a config file named ~/.imgur
@@ -23,9 +24,7 @@ file otherwise.
 
 Config file syntax is pretty simple :
 
-```
-7d8ca1d32ca3daca123
-```
+    7d8ca1d32ca3daca123
 
 ## OSX Integration
 
