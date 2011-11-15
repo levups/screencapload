@@ -65,20 +65,16 @@ end
 # CURL uses -F/--form to specify HTTP multipart POST data
 # CURL uses -X/--request to request command to use
 puts "Attempting to upload screen capture ..."
-curl_command = "curl --silent -X POST -F 'image=@#{tempfile}' -F 'key=#{api_key}' 'http://api.imgur.com/2/upload.json'"
-puts curl_command
-response = `#{curl_command}`
+response = `curl --silent -X POST -F 'image=@#{tempfile}' -F 'key=#{api_key}' 'http://api.imgur.com/2/upload.json'`
 
 FileUtils.rm(tempfile)
 
 # Parse response and get original image url from JSON
-json = JSON.parse(response)
-url = json['upload']['links']['original']
+url = JSON.parse(response)['upload']['links']['original']
 
-# Copy original image url to clipboard
-`printf "#{url}" | pbcopy`
-
+# Let's be verbose
 puts "Uploaded screen capture to #{url}"
 
-# Play an upload complete sound (Yoann Jean added a bang! for some Steeve Jobs emotion !)
-`osascript -e 'Say "Boom!"'`
+# Copy original image url to clipboard and play an upload complete sound
+# (Yoann Jean added a bang! for some Steeve Jobs emotion !)
+`printf "#{url}" | pbcopy && osascript -e 'Say "Boom!"'`
