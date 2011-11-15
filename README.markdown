@@ -18,11 +18,9 @@ and get your own API key. It allows you to upload up to 100 images per hour.
 
 ## Config file
 
-For easier use, you can store your key in a config file named ~/.imgur
 The script will use command line attribute first and fallback to the config
-file otherwise.
-
-Config file syntax is pretty simple, just paste your API key and you are done !
+file otherwise. You can store your key in a config file named ~/.imgur with
+a pretty simple syntax : just paste your API key and you are done !
 
 Example :
 
