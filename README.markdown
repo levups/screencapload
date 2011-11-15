@@ -9,11 +9,11 @@ clipboard.
 
 ## API key
 
-You need an API key from imgur. This is required to use the
+You need an API key from imgur to use the
 [imgur API](http://api.imgur.com/resources_auth).
 
-You can [register your application](http://imgur.com/register/api_anon)
-and get your own API key. It allows you to upload up to 100 images per hour.
+[Register your application](http://imgur.com/register/api_anon) and get your
+own API key. You will then be able to upload up to 100 images per hour.
 
 
 ## Config file
