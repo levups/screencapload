@@ -1,67 +1,83 @@
 #!/usr/bin/env ruby
-# encoding: UTF-8
+#
+# screencapload
+# Clement Joubert / @czj
+#
+# Captures a portion of your OSX screen from the command line,
+# uploads it to imgur, drops it into your clipboard.
+# 
+# It uses the imgur JSON v2 API and allows up to 100 uploads per hour
+#
+# Example:
+#
+#   screencapload [imgur_api_key]
+#
+# This requires json gem:
+#
+#   gem install json
+#
+# Passing imgur API key is optionnal if you have set your imgur
+# credentials in ~/.imgur as a simple file of :
+#
+#   api_key
+#
+# Gem warnings code taken from
+# https://github.com/holman/dotfiles/blob/master/bin/cloudapp
 
-# Imgur JSON v2 API
-API_URL = 'http://api.imgur.com/2/upload.json'
+require 'rubygems'
 
-# Default OSX screencapture app path
-SCREENCAPTURE = '/usr/sbin/screencapture'
-
-# Use a unique, timestamp based filename
-TEMP_FILE = "/tmp/screenshot-#{Time.now.to_f}.png"
-
-# Dot file where this app's config is stored
-CONFIG_FILE = "/Users/#{ENV['USER']}/.screencapload.yml"
-
-# JSON is required to parse imgur's response
-begin
-  require 'rubygems'
-  require 'json'
-  require 'yaml'
-rescue GEM::LoadError
-  puts "You must install JSON and YAML gem for this script to work."
-  exit
+['json', 'fileutils'].each do |gem_name|
+  begin
+    require gem_name
+  rescue LoadError
+    puts "You need to install #{gem_name}: gem install #{gem_name}"
+    exit!(1)
+  end
 end
 
-# API key can be given via command line or stored in ~/.screencapload.yml
-if ARGV[0]
-  API_KEY = ARGV[0]
-elsif File.exists?(CONFIG_FILE)
-  API_KEY = YAML.load(File.open(CONFIG_FILE))['imgur_api_key']
+config_file = "#{ENV['HOME']}/.imgur"
+
+if not ARGV[0].nil?
+  api_key = ARGV[0]
+elsif File.exists?(config_file)
+  api_key = File.read(config_file).strip
 else
-  puts "Usage: screencapload IMGUR_API_KEY"
-  exit
+  puts "Usage: screencapload [imgur_api_key]"
+  puts "You can also type your imgur api key in ~/.imgur"
+  exit!(1)
 end
 
-# Take a screenshot.
+tempfile = "/tmp/screenshot-#{Time.now.to_f}.png"
+
+# Take a screenshot on OSX
 # -x = don't play sound
-# -i = capture interactively (via mouse or window capture)
-`#{SCREENCAPTURE} -x -i '#{TEMP_FILE}'`
+# -i = capture interactively (via mouse, or press space to toggle full window capture)
+`/usr/sbin/screencapture -x -i '#{tempfile}'`
 
 # Check that the screenshot was actually captured, exit if not
-unless File.exists?(TEMP_FILE)
-  puts "Impossible to get captured screen image file."
-  exit
+unless File.exists?(tempfile)
+  puts "Impossible to get screen capture."
+  exit!(1)
 end
 
 # Upload it to imgur.com
 # CURL uses -F/--form to specify HTTP multipart POST data
 # CURL uses -X/--request to request command to use
-command  = "curl --silent -X POST -F 'image=@#{TEMP_FILE}' -F 'key=#{API_KEY}' '#{API_URL}'"
-response = `#{command}`
+puts "Attempting to upload screen capture ..."
+curl_command = "curl --silent -X POST -F 'image=@#{tempfile}' -F 'key=#{api_key}' 'http://api.imgur.com/2/upload.json'"
+puts curl_command
+response = `#{curl_command}`
 
-# Fileutils is used to delete temporary image.
-require 'fileutils'
-FileUtils.rm(TEMP_FILE)
+FileUtils.rm(tempfile)
 
 # Parse response and get original image url from JSON
 json = JSON.parse(response)
-url  = json['upload']['links']['original']
+url = json['upload']['links']['original']
 
-# Copy original image url to pasteboard and output url to stdout
+# Copy original image url to clipboard
 `printf "#{url}" | pbcopy`
-puts "#{url}"
 
-# Play an upload complete sound
-# YJE (10/11/2011) : let's add some emotion !
+puts "Uploaded screen capture to #{url}"
+
+# Play an upload complete sound (Yoann Jean added a bang! for some Steeve Jobs emotion !)
 `osascript -e 'Say "Boom!"'`
