@@ -6,34 +6,39 @@
 # Captures a portion of your OSX screen from the command line,
 # uploads it to imgur, drops it into your clipboard.
 # 
-# It uses the imgur JSON v2 API and allows up to 100 uploads per hour
+# It uses the imgur XML v2 API and allows up to 100 uploads per hour
 #
 # Example:
 #
 #   screencapload [imgur_api_key]
 #
-# This requires json gem:
-#
-#   gem install json
-#
 # Passing imgur API key is optionnal if you have set your imgur
 # credentials in ~/.imgur as a simple file of :
 #
-#   api_key
+#   <api_key_value>
 #
-# Gem warnings code taken from
-# https://github.com/holman/dotfiles/blob/master/bin/cloudapp
-
-require 'rubygems'
-
-['json', 'fileutils'].each do |gem_name|
-  begin
-    require gem_name
-  rescue LoadError
-    puts "You need to install #{gem_name}: gem install #{gem_name}"
-    exit!(1)
-  end
-end
+# 
+# Optionnal : install graphicsmagick with homebrew
+# 
+#   brew install graphicsmagick
+# 
+# On OSX Lion (november 2011) you might need this line to install :
+# sudo easy_install Mercurial ; brew install --use-gcc --HEAD graphicsmagick
+# 
+# GraphicsMagick is a faster implementation of ImageMagick
+# It allows us to trim the image's border :
+# 
+#   Before : http://i.imgur.com/5DFYN.png 
+#   After : http://i.imgur.com/YKK1F.png
+# 
+# 
+# Optionnal : install optipng / pngcrush with homebrew :
+# 
+#   brew install optipng
+# 
+# OptiPNG is an open source program that use optimized deflate compression
+# algorithms to re-compress PNG files. It is a lot faster than PNGOUT (closed source)
+# even though it doesn't save as much bytes.
 
 config_file = "#{ENV['HOME']}/.imgur"
 
@@ -51,26 +56,23 @@ tempfile = "/tmp/screenshot-#{Time.now.to_f}.png"
 
 # Take a screenshot on OSX
 # -x = don not play sounds
-# -o = in window capture mode, do not capture the shadow of the window
 # -i = capture interactively (via mouse, or press space to toggle full window capture)
-`/usr/sbin/screencapture -x -o -i '#{tempfile}'`
+`/usr/sbin/screencapture -x -i '#{tempfile}'`
 
-# PNGOUT saves a bit of upload time (and you users download time)
-#
-#   http://advsys.net/ken/util/pngout.htm
-# 
-# -kt = keep time
-# -s2 = quite fast (1s for 120kb file on a 3ghz machine)
-# -b1024 = higher block split threshold
-# `pngout "#{tempfile}"`
+# We use the default trimming of GraphicsMagick (1%)
+if File.exists?(gm = "/usr/local/bin/gm")
+  trimmed_tempfile = "/tmp/screenshot-trim-#{Time.now.to_f}.png"
+  puts "Trimming screen capture edges ..."
+  `#{gm} convert "#{tempfile}" -trim "#{trimmed_tempfile}" && mv "#{trimmed_tempfile}" "#{tempfile}"`
+end
 
-# ADVPNG uses 7zip deflate compression
-# it is a lot faster than PNGOUT even though it doesn't save as much bytes
-# 
-# The fastest compression settings requires a fraction of a second to
-# recompress and save 5 to 30 %. The second fastest settings needs
-# under a second and saves a lot more.
-# `advpng -z2 "#{tempfile}"`
+# We use optipng with default compression setting (-o2). It requires a
+# fraction of a second to recompress and save 5 to 30 %.
+# You can use -o3 too but it will add nearly a second to the whole process.
+if File.exists?(optipng = "/usr/local/bin/optipng")
+  puts "Optimizing PNG compression ..."
+  `#{optipng} "#{tempfile}"`
+end
 
 # Check that the screenshot was actually captured, exit if not
 unless File.exists?(tempfile)
@@ -81,13 +83,16 @@ end
 # Upload it to imgur.com
 # CURL uses -F/--form to specify HTTP multipart POST data
 # CURL uses -X/--request to request command to use
-puts "Attempting to upload screen capture ..."
-response = `curl --silent -X POST -F 'image=@#{tempfile}' -F 'key=#{api_key}' 'http://api.imgur.com/2/upload.json'`
+puts "Uploading screen capture ..."
 
-FileUtils.rm(tempfile)
+# We use XML API instead of JSON because XML parsing is built in Ruby
+# JSON requires users to install json gem system wide
+require "rexml/document"
+response = `curl --silent -X POST -F 'image=@#{tempfile}' -F 'key=#{api_key}' 'http://api.imgur.com/2/upload.xml'`
+`rm #{tempfile}`
 
-# Parse response and get original image url from JSON
-url = JSON.parse(response)['upload']['links']['original']
+# Parse response and get original image url from XML
+url = REXML::Document.new(response).root.elements['links'].elements['original'].text
 
 # Let's be verbose
 puts "Uploaded screen capture to #{url}"
