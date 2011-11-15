@@ -50,9 +50,10 @@ end
 tempfile = "/tmp/screenshot-#{Time.now.to_f}.png"
 
 # Take a screenshot on OSX
-# -x = don't play sound
+# -x = don not play sounds
+# -o = in window capture mode, do not capture the shadow of the window
 # -i = capture interactively (via mouse, or press space to toggle full window capture)
-`/usr/sbin/screencapture -x -i '#{tempfile}'`
+`/usr/sbin/screencapture -x -o -i '#{tempfile}'`
 
 # Check that the screenshot was actually captured, exit if not
 unless File.exists?(tempfile)
