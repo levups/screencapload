@@ -22,7 +22,9 @@ For easier use, you can store your key in a config file named ~/.imgur
 The script will use command line attribute first and fallback to the config
 file otherwise.
 
-Config file syntax is pretty simple, just paste your API key and your done ! Example :
+Config file syntax is pretty simple, just paste your API key and you are done !
+
+Example :
 
     7d8ca1d32ca3daca123
 
