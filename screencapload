@@ -64,6 +64,8 @@ if File.exists?(gm = "/usr/local/bin/gm")
   trimmed_tempfile = "/tmp/screenshot-trim-#{Time.now.to_f}.png"
   puts "Trimming screen capture edges ..."
   `#{gm} convert "#{tempfile}" -trim "#{trimmed_tempfile}" && mv "#{trimmed_tempfile}" "#{tempfile}"`
+else
+  puts "You should install graphicsmagick to allow automatic image trimming."
 end
 
 # We use optipng with default compression setting (-o2). It requires a
@@ -72,6 +74,8 @@ end
 if File.exists?(optipng = "/usr/local/bin/optipng")
   puts "Optimizing PNG compression ..."
   `#{optipng} "#{tempfile}"`
+else
+  puts "You should install optipng to allow smaller file size (faster uploads/downloads)."
 end
 
 # Check that the screenshot was actually captured, exit if not
@@ -83,20 +87,18 @@ end
 # Upload it to imgur.com
 # CURL uses -F/--form to specify HTTP multipart POST data
 # CURL uses -X/--request to request command to use
+# 
+# We use XML API instead of JSON because XML parsing is built in Ruby,
+# JSON would require users to install a gem
 puts "Uploading screen capture ..."
-
-# We use XML API instead of JSON because XML parsing is built in Ruby
-# JSON requires users to install json gem system wide
-require "rexml/document"
 response = `curl --silent -X POST -F 'image=@#{tempfile}' -F 'key=#{api_key}' 'http://api.imgur.com/2/upload.xml'`
 `rm #{tempfile}`
 
 # Parse response and get original image url from XML
+require "rexml/document"
 url = REXML::Document.new(response).root.elements['links'].elements['original'].text
-
-# Let's be verbose
-puts "Uploaded screen capture to #{url}"
 
 # Copy original image url to clipboard and play an upload complete sound
 # (Yoann Jean added a bang! for some Steeve Jobs emotion !)
+puts "Uploaded screen capture to #{url}"
 `printf "#{url}" | pbcopy && osascript -e 'Say "Boom!"'`
