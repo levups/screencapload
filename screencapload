@@ -55,6 +55,23 @@ tempfile = "/tmp/screenshot-#{Time.now.to_f}.png"
 # -i = capture interactively (via mouse, or press space to toggle full window capture)
 `/usr/sbin/screencapture -x -o -i '#{tempfile}'`
 
+# PNGOUT saves a bit of upload time (and you users download time)
+#
+#   http://advsys.net/ken/util/pngout.htm
+# 
+# -kt = keep time
+# -s2 = quite fast (1s for 120kb file on a 3ghz machine)
+# -b1024 = higher block split threshold
+# `pngout "#{tempfile}"`
+
+# ADVPNG uses 7zip deflate compression
+# it is a lot faster than PNGOUT even though it doesn't save as much bytes
+# 
+# The fastest compression settings requires a fraction of a second to
+# recompress and save 5 to 30 %. The second fastest settings needs
+# under a second and saves a lot more.
+# `advpng -z2 "#{tempfile}"`
+
 # Check that the screenshot was actually captured, exit if not
 unless File.exists?(tempfile)
   puts "Impossible to get screen capture."
