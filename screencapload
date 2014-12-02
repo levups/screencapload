@@ -39,9 +39,9 @@
 # OptiPNG is an open source program that use optimized deflate compression
 # algorithms to re-compress PNG files. It is a lot faster than PNGOUT (closed source)
 # even though it doesn't save as much bytes.
-
+ 
 config_file = "#{ENV['HOME']}/.imgur"
-
+ 
 if not ARGV[0].nil?
   api_key = ARGV[0]
 elsif File.exists?(config_file)
@@ -51,14 +51,14 @@ else
   puts "You can also type your imgur api key in ~/.imgur"
   exit!(1)
 end
-
+ 
 tempfile = "/tmp/screenshot-#{Time.now.to_f}.png"
-
+ 
 # Take a screenshot on OSX
 # -x = don not play sounds
 # -i = capture interactively (via mouse, or press space to toggle full window capture)
 `/usr/sbin/screencapture -x -i '#{tempfile}'`
-
+ 
 # We use the default trimming of GraphicsMagick (1%)
 if File.exists?(gm = "/usr/local/bin/gm")
   trimmed_tempfile = "/tmp/screenshot-trim-#{Time.now.to_f}.png"
@@ -67,7 +67,7 @@ if File.exists?(gm = "/usr/local/bin/gm")
 else
   puts "You should install graphicsmagick to allow automatic image trimming."
 end
-
+ 
 # We use optipng with default compression setting (-o2). It requires a
 # fraction of a second to recompress and save 5 to 30 %.
 # You can use -o3 too but it will add nearly a second to the whole process.
@@ -77,13 +77,13 @@ if File.exists?(optipng = "/usr/local/bin/optipng")
 else
   puts "You should install optipng to allow smaller file size (faster uploads/downloads)."
 end
-
+ 
 # Check that the screenshot was actually captured, exit if not
 unless File.exists?(tempfile)
   puts "Impossible to get screen capture."
   exit!(1)
 end
-
+ 
 # Upload it to imgur.com
 # CURL uses -F/--form to specify HTTP multipart POST data
 # CURL uses -X/--request to request command to use
@@ -91,14 +91,14 @@ end
 # We use XML API instead of JSON because XML parsing is built in Ruby,
 # JSON would require users to install a gem
 puts "Uploading screen capture ..."
-response = `curl --silent -X POST -F 'image=@#{tempfile}' -F 'key=#{api_key}' 'http://api.imgur.com/2/upload.xml'`
+response = `curl --header 'Authorization: Client-ID #{api_key}' --silent -X POST -F 'image=@#{tempfile}' 'https://api.imgur.com/3/upload.xml'`
 `rm #{tempfile}`
-
+ 
 # Parse response and get original image url from XML
 require "rexml/document"
-url = REXML::Document.new(response).root.elements['links'].elements['original'].text
-
+url = REXML::Document.new(response).root.elements['link'].text
+ 
 # Copy original image url to clipboard and play an upload complete sound
 # (Yoann Jean added a bang! for some Steeve Jobs emotion !)
 puts "Uploaded screen capture to #{url}"
-`printf "#{url}" | pbcopy && osascript -e 'Say "Boom!"'`
+`printf "#{url}" | pbcopy`
