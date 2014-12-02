@@ -6,7 +6,8 @@
 # Captures a portion of your OSX screen from the command line,
 # uploads it to imgur, drops it into your clipboard.
 # 
-# It uses the imgur XML v2 API and allows up to 100 uploads per hour
+# It uses the imgur v3 API and allows up to 100 uploads per hour.
+# Register on https://api.imgur.com/oauth2/addclient and get a key.
 #
 # Example:
 #
