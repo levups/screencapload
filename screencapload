@@ -5,7 +5,7 @@
 #
 # Captures a portion of your OSX screen from the command line,
 # uploads it to imgur, drops it into your clipboard.
-# 
+#
 # It uses the imgur v3 API and allows up to 100 uploads per hour.
 # Register on https://api.imgur.com/oauth2/addclient and get a key.
 #
@@ -18,50 +18,50 @@
 #
 #   <api_key_value>
 #
-# 
+#
 # Optionnal : install graphicsmagick with homebrew
-# 
+#
 #   brew install graphicsmagick
-# 
+#
 # On OSX Lion (november 2011) you might need this line to install :
 # sudo easy_install Mercurial ; brew install --use-gcc --HEAD graphicsmagick
-# 
+#
 # GraphicsMagick is a faster implementation of ImageMagick
 # It allows us to trim the image's border :
-# 
-#   Before : http://i.imgur.com/5DFYN.png 
+#
+#   Before : http://i.imgur.com/5DFYN.png
 #   After : http://i.imgur.com/YKK1F.png
-# 
-# 
+#
+#
 # Optionnal : install optipng / pngcrush with homebrew :
-# 
+#
 #   brew install optipng
-# 
+#
 # OptiPNG is an open source program that use optimized deflate compression
-# algorithms to re-compress PNG files. It is a lot faster than PNGOUT (closed source)
-# even though it doesn't save as much bytes.
- 
+# algorithms to re-compress PNG files. It is a lot faster than PNGOUT (closed
+# source) even though it doesn't save as much bytes.
+
 config_file = "#{ENV['HOME']}/.imgur"
- 
-if not ARGV[0].nil?
+
+if !ARGV[0].nil?
   api_key = ARGV[0]
-elsif File.exists?(config_file)
+elsif File.exist?(config_file)
   api_key = File.read(config_file).strip
 else
   puts "Usage: screencapload [imgur_api_key]"
   puts "You can also type your imgur api key in ~/.imgur"
   exit!(1)
 end
- 
+
 tempfile = "/tmp/screenshot-#{Time.now.to_f}.png"
- 
+
 # Take a screenshot on OSX
 # -x = don not play sounds
 # -i = capture interactively (via mouse, or press space to toggle full window capture)
 `/usr/sbin/screencapture -x -i '#{tempfile}'`
- 
+
 # We use the default trimming of GraphicsMagick (1%)
-if File.exists?(gm = "/usr/local/bin/gm")
+if File.exist?(gm = "/usr/local/bin/gm")
   trimmed_tempfile = "/tmp/screenshot-trim-#{Time.now.to_f}.png"
   puts "Trimming screen capture edges ..."
   `#{gm} convert "#{tempfile}" -trim "#{trimmed_tempfile}" && mv "#{trimmed_tempfile}" "#{tempfile}"`
@@ -80,33 +80,33 @@ end
 # We use optipng with default compression setting (-o2). It requires a
 # fraction of a second to recompress and save 5 to 30 %.
 # You can use -o3 too but it will add nearly a second to the whole process.
-if File.exists?(optipng = "/usr/local/bin/optipng")
+if File.exist?(optipng = "/usr/local/bin/optipng")
   puts "Optimizing PNG compression ..."
   `#{optipng} "#{tempfile}"`
 else
   puts "You should install optipng to allow smaller file size (faster uploads/downloads)."
 end
- 
+
 # Check that the screenshot was actually captured, exit if not
-unless File.exists?(tempfile)
+unless File.exist?(tempfile)
   puts "Impossible to get screen capture."
   exit!(1)
 end
- 
+
 # Upload it to imgur.com
 # CURL uses -F/--form to specify HTTP multipart POST data
 # CURL uses -X/--request to request command to use
-# 
+#
 # We use XML API instead of JSON because XML parsing is built in Ruby,
 # JSON would require users to install a gem
 puts "Uploading screen capture ..."
 response = `curl --header 'Authorization: Client-ID #{api_key}' --silent -X POST -F 'image=@#{tempfile}' 'https://api.imgur.com/3/upload.xml'`
 `rm #{tempfile}`
- 
+
 # Parse response and get original image url from XML
 require "rexml/document"
 url = REXML::Document.new(response).root.elements['link'].text
- 
+
 # Copy original image url to clipboard and play an upload complete sound
 # (Yoann Jean added a bang! for some Steeve Jobs emotion !)
 puts "Uploaded screen capture to #{url}"
