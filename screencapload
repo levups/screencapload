@@ -68,7 +68,15 @@ if File.exists?(gm = "/usr/local/bin/gm")
 else
   puts "You should install graphicsmagick to allow automatic image trimming."
 end
- 
+
+# We use pngquant to reduce to 1 byte per pixel images while keeping it easy to read
+if File.exist?(pngquant = "/usr/local/bin/pngquant")
+  puts "Reducing PNG bit depth ..."
+  `#{pngquant} --force --skip-if-larger --ext ".png" "#{tempfile}"`
+else
+  puts "You should install pngquant to reduce PNG file size (faster uploads/downloads)."
+end
+
 # We use optipng with default compression setting (-o2). It requires a
 # fraction of a second to recompress and save 5 to 30 %.
 # You can use -o3 too but it will add nearly a second to the whole process.
